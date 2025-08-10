@@ -32,90 +32,126 @@ const rooms = {
 };
 
 let currentUser = "";
-let currentRoom = "";
+let currentRelation = "";
+
+function handleUserTypeChange() {
+  const userType = document.getElementById("user-type").value;
+
+  document.getElementById("family-options").classList.add("hidden");
+  document.getElementById("guest-options").classList.add("hidden");
+  document.getElementById("room-list").classList.add("hidden");
+  document.getElementById("room-info").classList.add("hidden");
+  document.getElementById("access-denied").classList.add("hidden");
+  document.getElementById("inside-room").classList.add("hidden");
+
+  if (userType === "family") {
+    document.getElementById("family-options").classList.remove("hidden");
+  } else if (userType === "guest") {
+    document.getElementById("guest-options").classList.remove("hidden");
+  }
+}
 
 function confirmUser() {
-  const type = document.getElementById("user-type").value;
+  const userType = document.getElementById("user-type").value;
+  if (userType === "") {
+    alert("Please select a user type.");
+    return;
+  }
 
-  if (type === "me") {
+  if (userType === "me") {
     currentUser = "Me";
-  } else if (type === "family") {
-    const fam = document.getElementById("family-user").value;
-    if (!fam) {
+  } else if (userType === "family") {
+    const selectedFamily = document.getElementById("family-user").value;
+    if (selectedFamily === "") {
       alert("Please select a family member.");
       return;
     }
-    currentUser = fam;
-  } else if (type === "guest") {
+    currentUser = selectedFamily;
+  } else if (userType === "guest") {
     const relation = document.getElementById("guest-relation").value.trim();
-    if (!relation) {
-      alert("Please enter guest relationship.");
+    if (relation === "") {
+      alert("Please enter your relationship.");
       return;
     }
-    currentUser = "Guest";
-  } else {
-    alert("Please select a user type.");
-    return;
+    currentUser = `Guest (${relation})`;
+    currentRelation = relation.toLowerCase(); // Store for access logic
   }
 
   document.getElementById("room-list").classList.remove("hidden");
   document.getElementById("room-info").classList.add("hidden");
   document.getElementById("access-denied").classList.add("hidden");
   document.getElementById("inside-room").classList.add("hidden");
-
-  currentRoom = "";
-
-  document.getElementById("family-user").value = "";
-  document.getElementById("guest-relation").value = "";
 }
 
-function attemptEntry(roomKey) {
-  const room = rooms[roomKey];
-  currentRoom = roomKey;
+const roomData = {
+  living: {
+    name: "Drawing Room",
+    img: "https://www.decorilla.com/online-decorating/wp-content/uploads/2022/09/luxury-drawing-room-design.jpg",
+    facilities: "TV, Sofa, AC",
+    allowed: ["Me", "Father", "Mother", "Sister", "guest"],
+  },
+  bedroom: {
+    name: "Bedroom",
+    img: "https://www.thespruce.com/thmb/xj_Edgo6krFvyZUJ0f3kmnXvJxg=/3000x0/filters:no_upscale():max_bytes(150000):strip_icc()/small-bedroom-ideas-4137026-hero-4c66ce934e3b47e7bd0894e5a4a21284.jpg",
+    facilities: "Bed, Wardrobe, AC",
+    allowed: ["Me", "Father", "Mother"],
+  },
+  kitchen: {
+    name: "Kitchen",
+    img: "https://hips.hearstapps.com/hmg-prod/images/kitchen-ideas-white-cabinets-64ee40d5cfe1f.jpg",
+    facilities: "Oven, Fridge, Sink",
+    allowed: ["Me", "Mother"],
+  },
+  study: {
+    name: "Study Room",
+    img: "https://www.thespruce.com/thmb/VXpKRG2g0EYXf3wXx33Lk1Wdx1U=/2121x0/filters:no_upscale():max_bytes(150000):strip_icc()/Spruce-HomeOffice-001-0dc5ed7f57c741099bfa3e570c633025.jpg",
+    facilities: "Bookshelf, Desk, Lamp",
+    allowed: ["Me", "Sister"],
+  },
+  dining: {
+    name: "Dining Room",
+    img: "https://www.decorilla.com/online-decorating/wp-content/uploads/2021/11/Neutral-modern-dining-room-interior.jpg",
+    facilities: "Dining Table, Chairs",
+    allowed: ["Me", "Father", "Mother", "Sister", "guest"],
+  },
+};
 
-  let allowed = false;
-  if (room.access.includes(currentUser)) {
-    allowed = true;
-  } else if (["Father", "Mother", "Sister"].includes(currentUser) && room.access.includes("Family")) {
-    allowed = true;
-  } else if (currentUser === "Guest" && room.access.includes("Guest")) {
-    allowed = true;
+function attemptEntry(roomKey) {
+  const room = roomData[roomKey];
+
+  // Check access
+  let allowed = room.allowed.includes(currentUser) || room.allowed.includes("guest");
+
+  // 🚫 Special guest restriction
+  if (currentUser.toLowerCase().includes("guest") && currentRelation === "cousin") {
+    if (roomKey !== "living" && roomKey !== "dining") {
+      allowed = false;
+    }
   }
 
   if (allowed) {
-    showRoom(room);
+    document.getElementById("room-name").textContent = room.name;
+    document.getElementById("room-img").src = room.img;
+    document.getElementById("facilities").textContent = room.facilities;
+    document.getElementById("access").textContent = room.allowed.join(", ");
+    document.getElementById("room-info").classList.remove("hidden");
+    document.getElementById("access-denied").classList.add("hidden");
+    document.getElementById("inside-room").classList.add("hidden");
   } else {
-    showAccessDenied();
+    document.getElementById("room-info").classList.add("hidden");
+    document.getElementById("access-denied").classList.remove("hidden");
+    document.getElementById("inside-room").classList.add("hidden");
   }
 }
 
-function showRoom(room) {
-  document.getElementById("room-info").classList.remove("hidden");
-  document.getElementById("access-denied").classList.add("hidden");
-  document.getElementById("inside-room").classList.add("hidden");
-
-  document.getElementById("room-name").textContent = room.name;
-  document.getElementById("room-img").src = room.img;
-  document.getElementById("facilities").textContent = room.facilities.join(", ");
-  document.getElementById("access").textContent = room.access.join(", ");
-}
-
-function showAccessDenied() {
-  document.getElementById("access-denied").classList.remove("hidden");
-  document.getElementById("room-info").classList.add("hidden");
-  document.getElementById("inside-room").classList.add("hidden");
-}
-
 function enterRoom() {
-  if (!currentRoom || !currentUser) return;
+  const time = new Date().toLocaleTimeString();
+  const roomName = document.getElementById("room-name").textContent;
 
-  document.getElementById("inside-room").classList.remove("hidden");
-  document.getElementById("room-info").classList.add("hidden");
-  document.getElementById("access-denied").classList.add("hidden");
-
-  document.getElementById("entered-room-name").textContent = rooms[currentRoom].name;
+  document.getElementById("entered-room-name").textContent = roomName;
   document.getElementById("entered-user").textContent = currentUser;
+  document.getElementById("entry-time").textContent = time;
 
-  const now = new Date();
-  document.getElementById("entry-time").textContent = now.toLocaleString();
+  document.getElementById("room-info").classList.add("hidden");
+  document.getElementById("inside-room").classList.remove("hidden");
 }
