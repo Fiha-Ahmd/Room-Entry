@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Smart Home Access - Pink Centered</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <h1>🏠 Smart Home Access System</h1>
+
+  <img id="banner-img" src="https://via.placeholder.com/600x200/ffb6c1/000000?text=Welcome+to+Smart+Home" alt="Banner" />
+
+  <div class="selector">
+    <label><strong>User Type:</strong></label>
+    <select id="user-type" onchange="handleUserTypeChange()">
+      <option value="">-- Select --</option>
+      <option value="me">Me</option>
+      <option value="family">Family Member</option>
+      <option value="guest">Guest</option>
+    </select>
+  </div>
+
+  <div id="family-options" class="hidden">
+    <label><strong>Select Family Member:</strong></label>
+    <select id="family-user">
+      <option value="">-- Select --</option>
+      <option value="Father">Father</option>
+      <option value="Mother">Mother</option>
+      <option value="Sister">Sister</option>
+    </select>
+  </div>
+
+  <div id="guest-options" class="hidden">
+    <label><strong>Enter Relationship:</strong></label>
+    <input type="text" id="guest-relation" placeholder="e.g. Cousin, Friend" />
+  </div>
+
+  <button onclick="confirmUser()">✅ Confirm User</button>
+
+  <div id="room-list" class="hidden">
+    <h3>🔑 Choose a Room</h3>
+    <button onclick="attemptEntry('living')">🛋️ Drawing Room</button>
+    <button onclick="attemptEntry('bedroom')">🛏️ Bedroom</button>
+    <button onclick="attemptEntry('kitchen')">🍳 Kitchen</button>
+    <button onclick="attemptEntry('study')">📚 Study Room</button>
+    <button onclick="attemptEntry('dining')">🍽️ Dining Room</button>
+  </div>
+
+  <div id="room-info" class="hidden">
+    <h2 id="room-name"></h2>
+    <img id="room-img" src="" alt="Room Image" />
+    <p><strong>Facilities:</strong> <span id="facilities"></span></p>
+    <p><strong>Allowed:</strong> <span id="access"></span></p>
+    <button onclick="enterRoom()">🚪 Enter Room</button>
+  </div>
+
+  <div id="access-denied" class="hidden">
+    <h2>❌ Access Denied</h2>
+    <p>You are not permitted to enter this room.</p>
+  </div>
+
+  <div id="inside-room" class="hidden">
+    <h2>✅ Inside <span id="entered-room-name"></span></h2>
+    <p><strong>User:</strong> <span id="entered-user"></span></p>
+    <p><strong>Time:</strong> <span id="entry-time"></span></p>
+  </div>
+
+<script src="script.js"></script>
+</body>
+</html>
